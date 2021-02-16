@@ -1,0 +1,285 @@
+---
+BasePath: "/"
+Port: 8080
+ListenHost: "127.0.0.1"
+Models:
+  "S":
+    DefaultVariant: "LongRange"
+    Variants:
+      LongRange:
+        USD: 79990
+        CAD: 114990
+        EUR: 89990
+        GBP: 83980
+      Plaid:
+        USD: 119990
+        CAD: 159990
+        EUR: 119990
+        GBP: 110980
+      PlaidPlus:
+        USD: 139990
+        CAD: 189990
+        EUR: 139990
+        GBP: 130980
+    Options:
+      DestinationFee:
+        USD: 1200
+      Black:
+        Group: 0
+        USD: 1500
+        CAD: 2000
+        EUR: 1600
+        GBP: 1450
+      Silver:
+        Group: 0
+        USD: 1500
+        CAD: 2000
+        EUR: 1600
+        GBP: 1450
+      Blue:
+        Group: 0
+        USD: 1500
+        CAD: 2000
+        EUR: 1600
+        GBP: 1450
+      Red:
+        Group: 0
+        USD: 2500
+        CAD: 3300
+        EUR: 2700
+        GBP: 2500
+      ArachnidWheels:
+        USD: 4500
+        CAD: 5900
+        EUR: 4800
+        EUR: 4400
+      BlackAndWhiteInterior:
+        USD: 2000
+        CAD: 2600
+        EUR: 2100
+        GBP: 2000
+      CreamInterior:
+        USD: 2000
+        CAD: 2600
+        EUR: 2100
+        GBP: 2000
+      EnhancedAutopilot:
+        Group: 1
+        EUR: 3800
+        GBP: 3400
+      FSD:
+        Group: 1
+        USD: 10000
+        CAD: 10600
+        EUR: 7500
+        GBP: 6800
+  "3":
+    DefaultVariant: "StandardRangePlus"
+    Variants:
+      StandardRangePlus:
+        USD: 37990
+        CAD: 52990
+        EUR: 47990
+        GBP: 40490
+      LongRange:
+        USD: 46990
+        CAD: 64990
+        EUR: 56990
+        GBP: 46990
+      Performance:
+        USD: 54990
+        CAD: 74990
+        EUR: 62990
+        GBP: 59990
+    Options:
+      DestinationFee:
+        USD: 1200
+      Black:
+        Group: 0
+        USD: 1000
+        CAD: 1300
+        EUR: 1050
+        GBP: 1000
+      Silver:
+        Group: 0
+        USD: 1000
+        CAD: 1300
+        EUR: 1050
+        GBP: 1000
+      Blue:
+        Group: 0
+        USD: 1000
+        CAD: 1300
+        EUR: 1050
+        GBP: 1000
+      Red:
+        Group: 0
+        USD: 2000
+        CAD: 2600
+        EUR: 2100
+        GBP: 2000
+      SportWheels:
+        USD: 1500
+        CAD: 2000
+        EUR: 1600
+        GBP: 1450
+      WinterTires:
+        EUR: 2050
+      TowHitch:
+        EUR: 1350
+        GBP: 1300
+      BlackAndWhiteInterior:
+        USD: 1000
+        CAD: 1300
+        EUR: 1050
+        GBP: 1000
+      EnhancedAutopilot:
+        Group: 1
+        EUR: 3800
+        GBP: 3400
+      FSD:
+        Group: 1
+        USD: 10000
+        CAD: 10600
+        EUR: 7500
+        GBP: 6800
+  "X":
+    DefaultVariant: "LongRange"
+    Variants:
+      LongRange:
+        USD: 89990
+        CAD: 124990
+        EUR: 99990
+        GBP: 90980
+      Plaid:
+        USD: 119990
+        CAD: 159990
+        EUR: 119990
+        GBP: 110980
+    Options:
+      DestinationFee:
+        USD: 1200
+      Black:
+        Group: 0
+        USD: 1500
+        CAD: 2000
+        EUR: 1600
+        GBP: 1450
+      Silver:
+        Group: 0
+        USD: 1500
+        CAD: 2000
+        EUR: 1600
+        GBP: 1450
+      Blue:
+        Group: 0
+        USD: 1500
+        CAD: 2000
+        EUR: 1600
+        GBP: 1450
+      Red:
+        Group: 0
+        USD: 2500
+        CAD: 3300
+        EUR: 2700
+        GBP: 2500
+      TurbineWheels:
+        USD: 5500
+        CAD: 7200
+        EUR: 5900
+        EUR: 5400
+      BlackAndWhiteInterior:
+        USD: 2000
+        CAD: 2600
+        EUR: 2100
+        GBP: 2000
+      CreamInterior:
+        USD: 2000
+        CAD: 2600
+        EUR: 2100
+        GBP: 2000
+      SixSeatInterior:
+        USD: 6500
+        CAD: 8500
+        EUR: 6900
+        GBP: 6300
+      SevenSeatInterior:
+        USD: 3500
+        CAD: 4600
+        EUR: 3700
+        GBP: 3400
+      EnhancedAutopilot:
+        Group: 1
+        EUR: 3800
+        GBP: 3400
+      FSD:
+        Group: 1
+        USD: 10000
+        CAD: 10600
+        EUR: 7500
+        GBP: 6800
+  "Y":
+    DefaultVariant: "StandardRange"
+    Variants:
+      StandardRange:
+        USD: 41990
+        CAD: 56290
+      LongRange:
+        USD: 49990
+        CAD: 69990
+        EUR: 63000
+      Performance:
+        USD: 59990
+        CAD: 83990
+        EUR: 70000
+    Options:
+      DestinationFee:
+        USD: 1200
+      Black:
+        Group: 0
+        USD: 1000
+        CAD: 1300
+        EUR: 1050
+      Silver:
+        Group: 0
+        USD: 1000
+        CAD: 1300
+        EUR: 1050
+      Blue:
+        Group: 0
+        USD: 1000
+        CAD: 1300
+        EUR: 1050
+      Red:
+        Group: 0
+        USD: 2000
+        CAD: 2600
+        EUR: 2100
+      InductionWheels:
+        USD: 2000
+        CAD: 2600
+      BlackAndWhiteInterior:
+        USD: 1000
+        CAD: 1300
+        EUR: 1050
+      SevenSeatInterior:
+        USD: 3000
+        CAD: 4000
+        EUR: 3200
+      TowHitch:
+        USD: 1000
+        CAD: 1300
+        EUR: 1050
+      FSD:
+        Group: 1
+        USD: 10000
+        CAD: 10600
+        EUR: 7500
+      TowHitch:
+        USD: 1000
+        CAD: 1300
+        EUR: 1050
+      FSD:
+        USD: 10000
+        CAD: 10600
+        EUR: 7500
