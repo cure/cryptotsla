@@ -162,23 +162,35 @@ func listModels(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Fprintf(w, "%s", string(responseB))
-	log.Printf("Response: %s: %s\n", r.RemoteAddr, string(responseB))
+	accessLog(r, string(responseB))
+}
+
+func accessLog(r *http.Request, message string) {
+	remote := r.RemoteAddr
+	// Oddly, the header has been changed from X-Real-IP
+	if realIP, ok := r.Header["X-Real-Ip"]; ok {
+		remote = strings.Join(realIP, ",")
+	}
+	log.Printf("{ \"Remote\":\"%s\", \"Request\": \"%s %s\", \"Response\": %s}\n", remote, r.Method, r.URL.String(), message)
 }
 
 func getHelp(w http.ResponseWriter, r *http.Request) {
-	response := "{\"Status\":\"200\",\"Message\":\"See https://github.com/cure/cryptotsla for documentation\"}"
-	fmt.Fprintf(w, "%s", response)
-	log.Printf("Response: %s: %s\n", r.RemoteAddr, response)
+	if r.URL.String() == "/" {
+		response := "{\"Status\":\"200\",\"Message\":\"See https://github.com/cure/cryptotsla for documentation\"}"
+		fmt.Fprintf(w, "%s", response)
+		accessLog(r, response)
+		return
+	}
+	response := "{\"Status\":\"404\",\"Error\":\"Path not found, see https://github.com/cure/cryptotsla\"}"
+	http.Error(w, response, http.StatusNotFound)
 }
 
 func getModel(w http.ResponseWriter, r *http.Request) {
-	log.Printf("Request: %s: %s %s\n", r.RemoteAddr, r.Method, r.URL.String())
-
 	urlPart := strings.Split(r.URL.Path, "/")
 
 	if len(urlPart) < 3 {
 		errorString := "{\"Status\":\"404\",\"Error\":\"Path not found, see https://github.com/cure/cryptotsla\"}"
-		log.Printf("Response: %s: %s\n", r.RemoteAddr, errorString)
+		accessLog(r, errorString)
 		http.Error(w, errorString, http.StatusNotFound)
 		return
 	}
@@ -239,7 +251,7 @@ func generateResponse(w http.ResponseWriter, r *http.Request, currency, model, v
 	_, ok = m.Variants[variant]
 	if !ok {
 		errorString := "{\"Status\":\"404\",\"Error\":\"Variant not found\"}"
-		log.Printf("Response: %s: %s\n", r.RemoteAddr, errorString)
+		accessLog(r, errorString)
 		http.Error(w, errorString, http.StatusNotFound)
 		return
 	}
@@ -247,7 +259,7 @@ func generateResponse(w http.ResponseWriter, r *http.Request, currency, model, v
 	cost, ok := m.Variants[variant][strings.ToLower(currency)]
 	if !ok {
 		errorString := "{\"Status\":\"404\",\"Error\":\"Currency not available for this model/variant\"}"
-		log.Printf("Response: %s: %s\n", r.RemoteAddr, errorString)
+		accessLog(r, errorString)
 		http.Error(w, errorString, http.StatusNotFound)
 		return
 	}
@@ -292,7 +304,7 @@ func generateResponse(w http.ResponseWriter, r *http.Request, currency, model, v
 	}
 
 	fmt.Fprintf(w, "%s", string(responseB))
-	log.Printf("Response: %s: %s\n", r.RemoteAddr, string(responseB))
+	accessLog(r, string(responseB))
 }
 
 func main() {
