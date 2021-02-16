@@ -6,10 +6,14 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sort"
 	"strings"
 	"time"
 
 	coinbasepro "github.com/preichenberger/go-coinbasepro/v2"
+	"github.com/prometheus/client_golang/prometheus"
+	//"github.com/prometheus/client_golang/prometheus/promauto"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/shopspring/decimal"
 	flag "github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -56,6 +60,96 @@ type AvailableModel struct {
 // AvailableResponse describes all available vehicle models
 type AvailableResponse struct {
 	Models []AvailableModel
+}
+
+var httpReqs = prometheus.NewCounterVec(
+	prometheus.CounterOpts{
+		Name: "http_requests_total",
+		Help: "Total number of HTTP requests processed by HTTP status code and method.",
+	},
+	[]string{"code", "method"},
+)
+
+var modelReqs = prometheus.NewCounterVec(
+	prometheus.CounterOpts{
+		Name: "tsla_model_total",
+		Help: "Total number of successful requests by vehicle model.",
+	},
+	[]string{"model"},
+)
+
+var variantReqs = prometheus.NewCounterVec(
+	prometheus.CounterOpts{
+		Name: "tsla_model_variant_total",
+		Help: "Total number of successful requests by vehicle model and variant.",
+	},
+	[]string{"model", "variant"},
+)
+
+var optionReqs = prometheus.NewCounterVec(
+	prometheus.CounterOpts{
+		Name: "tsla_model_variant_option_total",
+		Help: "Total number of successful requests by vehicle model, variant and option.",
+	},
+	[]string{"model", "variant", "option"},
+)
+
+var optionsReqs = prometheus.NewCounterVec(
+	prometheus.CounterOpts{
+		Name: "tsla_model_variant_options_total",
+		Help: "Total number of successful requests by vehicle model, variant and all valid options.",
+	},
+	[]string{"model", "variant", "options"},
+)
+
+func prometheusRecordOptions(model, variant string, response Response) {
+	options := make([]string, 0, len(response.Options))
+	for o, _ := range response.Options {
+		options = append(options, normalize(o))
+	}
+
+	sort.Strings(options)
+
+	optionsReqs.WithLabelValues(strings.ToUpper(model), normalize(variant), strings.Join(options, ",")).Inc()
+}
+
+func normalize(input string) (output string) {
+	if strings.ToLower(input) == "standardrange" {
+		output = "StandardRange"
+	} else if strings.ToLower(input) == "standardrangeplus" {
+		output = "StandardRangePlus"
+	} else if strings.ToLower(input) == "longrange" {
+		output = "LongRange"
+	} else if strings.ToLower(input) == "plaidplus" {
+		output = "PlaidPlus"
+	} else if strings.ToLower(input) == "destinationfee" {
+		output = "DestinationFee"
+	} else if strings.ToLower(input) == "towhitch" {
+		output = "TowHitch"
+	} else if strings.ToLower(input) == "arachnidwheels" {
+		output = "ArachnidWheels"
+	} else if strings.ToLower(input) == "sportwheels" {
+		output = "SportWheels"
+	} else if strings.ToLower(input) == "turbinewheels" {
+		output = "TurbineWheels"
+	} else if strings.ToLower(input) == "inductionwheels" {
+		output = "InductionWheels"
+	} else if strings.ToLower(input) == "blackandwhiteinterior" {
+		output = "BlackAndWhiteInterior"
+	} else if strings.ToLower(input) == "creaminterior" {
+		output = "CreamInterior"
+	} else if strings.ToLower(input) == "sixseatinterior" {
+		output = "SixSeatInterior"
+	} else if strings.ToLower(input) == "sevenseatinterior" {
+		output = "SevenSeatInterior"
+	} else if strings.ToLower(input) == "enhancedautopilot" {
+		output = "EnhancedAutopilot"
+	} else if strings.ToLower(input) == "fsd" {
+		output = "FSD"
+	} else {
+		output = strings.Title(input)
+	}
+	return output
 }
 
 func loadConfigDefaults() {
@@ -149,10 +243,10 @@ func listModels(w http.ResponseWriter, r *http.Request) {
 		var model AvailableModel
 		model.Name = strings.ToUpper(name)
 		for option := range m.Options {
-			model.Options = append(model.Options, option)
+			model.Options = append(model.Options, normalize(option))
 		}
 		for variant := range m.Variants {
-			model.Variants = append(model.Variants, variant)
+			model.Variants = append(model.Variants, normalize(variant))
 		}
 		response.Models = append(response.Models, model)
 	}
@@ -162,26 +256,29 @@ func listModels(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Fprintf(w, "%s", string(responseB))
-	accessLog(r, string(responseB))
+	accessLog(r, "200", string(responseB))
 }
 
-func accessLog(r *http.Request, message string) {
+func accessLog(r *http.Request, code, message string) {
 	remote := r.RemoteAddr
 	// Oddly, the header has been changed from X-Real-IP
 	if realIP, ok := r.Header["X-Real-Ip"]; ok {
 		remote = strings.Join(realIP, ",")
 	}
 	log.Printf("{ \"Remote\":\"%s\", \"Request\": \"%s %s\", \"Response\": %s}\n", remote, r.Method, r.URL.String(), message)
+	httpReqs.WithLabelValues(code, r.Method).Inc()
 }
 
 func getHelp(w http.ResponseWriter, r *http.Request) {
 	if r.URL.String() == "/" {
 		response := "{\"Status\":\"200\",\"Message\":\"See https://github.com/cure/cryptotsla for documentation\"}"
 		fmt.Fprintf(w, "%s", response)
-		accessLog(r, response)
+		accessLog(r, "200", response)
 		return
 	}
 	response := "{\"Status\":\"404\",\"Error\":\"Path not found, see https://github.com/cure/cryptotsla\"}"
+	httpReqs.WithLabelValues("404", r.Method).Inc()
+	accessLog(r, "404", response)
 	http.Error(w, response, http.StatusNotFound)
 }
 
@@ -190,12 +287,13 @@ func getModel(w http.ResponseWriter, r *http.Request) {
 
 	if len(urlPart) < 3 {
 		errorString := "{\"Status\":\"404\",\"Error\":\"Path not found, see https://github.com/cure/cryptotsla\"}"
-		accessLog(r, errorString)
+		accessLog(r, "404", errorString)
 		http.Error(w, errorString, http.StatusNotFound)
 		return
 	}
 
-	model := urlPart[2]
+	model := normalize(urlPart[2])
+	modelReqs.WithLabelValues(strings.ToUpper(model)).Inc()
 
 	var variant string
 	if len(urlPart) > 3 {
@@ -231,13 +329,17 @@ func generateResponse(w http.ResponseWriter, r *http.Request, currency, model, v
 	response.BTCSpotPrice = getBtcSpot(client, response.Currency)
 
 	if response.BTCSpotPrice.IsZero() {
-		http.Error(w, "{\"Status\":\"500\",\"Error\":\"Unable to get BTC exchange rate\"}", http.StatusInternalServerError)
+		errorString := "{\"Status\":\"500\",\"Error\":\"Unable to get BTC exchange rate\"}"
+		accessLog(r, "500", errorString)
+		http.Error(w, errorString, http.StatusInternalServerError)
 		return
 	}
 
 	m, ok := models[model]
 	if !ok {
-		http.Error(w, "{\"Status\":\"404\",\"Error\":\"Model not found\"}", http.StatusNotFound)
+		errorString := "{\"Status\":\"404\",\"Error\":\"Model not found\"}"
+		accessLog(r, "404", errorString)
+		http.Error(w, errorString, http.StatusNotFound)
 		return
 	}
 
@@ -245,13 +347,15 @@ func generateResponse(w http.ResponseWriter, r *http.Request, currency, model, v
 	if variant == "" {
 		variant = m.DefaultVariant
 	}
-	response.Variant = variant
+	response.Variant = normalize(variant)
 	variant = strings.ToLower(variant)
+
+	variantReqs.WithLabelValues(strings.ToUpper(model), normalize(variant)).Inc()
 
 	_, ok = m.Variants[variant]
 	if !ok {
 		errorString := "{\"Status\":\"404\",\"Error\":\"Variant not found\"}"
-		accessLog(r, errorString)
+		accessLog(r, "404", errorString)
 		http.Error(w, errorString, http.StatusNotFound)
 		return
 	}
@@ -259,7 +363,7 @@ func generateResponse(w http.ResponseWriter, r *http.Request, currency, model, v
 	cost, ok := m.Variants[variant][strings.ToLower(currency)]
 	if !ok {
 		errorString := "{\"Status\":\"404\",\"Error\":\"Currency not available for this model/variant\"}"
-		accessLog(r, errorString)
+		accessLog(r, "404", errorString)
 		http.Error(w, errorString, http.StatusNotFound)
 		return
 	}
@@ -283,15 +387,18 @@ func generateResponse(w http.ResponseWriter, r *http.Request, currency, model, v
 		// Only include the option if we have cost information about it, ignore otherwise
 		if cost != int64(0) {
 			total += cost
-			response.Options[v] = cost
+			response.Options[normalize(v)] = cost
 			response.Total += cost
+			optionReqs.WithLabelValues(strings.ToUpper(model), normalize(variant), normalize(v)).Inc()
 		}
 	}
+	prometheusRecordOptions(model, variant, response)
 	destinationFee := m.Options["destinationfee"][currency]
 	if destinationFee != 0 {
 		total += destinationFee
 		response.Options["DestinationFee"] = destinationFee
 		response.Total += destinationFee
+		optionReqs.WithLabelValues(strings.ToUpper(model), normalize(variant), "DestinationFee").Inc()
 	}
 
 	t := time.Now()
@@ -304,7 +411,7 @@ func generateResponse(w http.ResponseWriter, r *http.Request, currency, model, v
 	}
 
 	fmt.Fprintf(w, "%s", string(responseB))
-	accessLog(r, string(responseB))
+	accessLog(r, "200", string(responseB))
 }
 
 func main() {
@@ -319,11 +426,18 @@ func main() {
 
 	log.Println("Starting cryptotsla Daemon")
 
+	prometheus.MustRegister(httpReqs)
+	prometheus.MustRegister(modelReqs)
+	prometheus.MustRegister(variantReqs)
+	prometheus.MustRegister(optionReqs)
+	prometheus.MustRegister(optionsReqs)
+
 	http.Handle(viper.GetString("BasePath"), http.HandlerFunc(getHelp))
 	http.Handle(viper.GetString("BasePath")+"model/", http.HandlerFunc(getModel))
 	http.Handle(viper.GetString("BasePath")+"model", http.HandlerFunc(getModel))
 	http.Handle(viper.GetString("BasePath")+"available/", http.HandlerFunc(listModels))
 	http.Handle(viper.GetString("BasePath")+"available", http.HandlerFunc(listModels))
 
+	http.Handle("/metrics", promhttp.Handler())
 	log.Fatal(http.ListenAndServe(viper.GetString("ListenHost")+":"+viper.GetString("Port"), nil))
 }

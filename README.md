@@ -103,85 +103,85 @@ curl -s "https://api.cryptotsla.com/available" |jq .
 {
   "Models": [
     {
-      "Name": "Y",
-      "Options": [
-        "inductionwheels",
-        "destinationfee",
-        "black",
-        "blackandwhiteinterior",
-        "fsd",
-        "sevenseatinterior",
-        "blue",
-        "towhitch",
-        "silver",
-        "red"
-      ],
-      "Variants": [
-        "standardrange",
-        "longrange",
-        "performance"
-      ]
-    },
-    {
       "Name": "S",
       "Options": [
-        "destinationfee",
-        "enhancedautopilot",
-        "black",
-        "blue",
-        "blackandwhiteinterior",
-        "arachnidwheels",
-        "fsd",
-        "silver",
-        "red",
-        "creaminterior"
+        "Black",
+        "Silver",
+        "EnhancedAutopilot",
+        "DestinationFee",
+        "Blue",
+        "CreamInterior",
+        "ArachnidWheels",
+        "BlackAndWhiteInterior",
+        "FSD",
+        "Red"
       ],
       "Variants": [
-        "longrange",
-        "plaid",
-        "plaidplus"
+        "PlaidPlus",
+        "LongRange",
+        "Plaid"
       ]
     },
     {
       "Name": "3",
       "Options": [
-        "enhancedautopilot",
-        "blackandwhiteinterior",
-        "blue",
-        "red",
-        "fsd",
-        "black",
-        "towhitch",
-        "sportwheels",
-        "wintertires",
-        "silver",
-        "destinationfee"
+        "TowHitch",
+        "BlackAndWhiteInterior",
+        "FSD",
+        "Wintertires",
+        "Blue",
+        "Black",
+        "Silver",
+        "SportWheels",
+        "DestinationFee",
+        "Red",
+        "EnhancedAutopilot"
       ],
       "Variants": [
-        "standardrangeplus",
-        "longrange",
-        "performance"
+        "StandardRangePlus",
+        "LongRange",
+        "Performance"
       ]
     },
     {
       "Name": "X",
       "Options": [
-        "destinationfee",
-        "red",
-        "turbinewheels",
-        "silver",
-        "enhancedautopilot",
-        "creaminterior",
-        "blue",
-        "black",
-        "blackandwhiteinterior",
-        "sixseatinterior",
-        "sevenseatinterior",
-        "fsd"
+        "BlackAndWhiteInterior",
+        "EnhancedAutopilot",
+        "Black",
+        "DestinationFee",
+        "FSD",
+        "TurbineWheels",
+        "CreamInterior",
+        "Red",
+        "SixSeatInterior",
+        "SevenSeatInterior",
+        "Blue",
+        "Silver"
       ],
       "Variants": [
-        "longrange",
-        "plaid"
+        "LongRange",
+        "Plaid"
+      ]
+    },
+    {
+      "Name": "Y",
+      "Options": [
+        "InductionWheels",
+        "Silver",
+        "TowHitch",
+        "Black",
+        "BlackAndWhiteInterior",
+        "SevenSeatInterior",
+        "DestinationFee",
+        "FSD",
+        "Red",
+        "Blue"
+      ],
+      "Variants": [
+        "LongRange",
+        "Performance",
+        "StandardRange"
       ]
     }
   ]
