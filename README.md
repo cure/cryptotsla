@@ -192,7 +192,7 @@ curl -s "https://api.cryptotsla.com/available" |jq .
 
 * There is no BTC-CAD order book via this Coinbase API. Use a different API? The Coinbase developer API seems to have a price endpoint for CAD.
 * We need some sort of locale option. Particularly for the Euro pricing, where there are differences between the countries that use the Euro.
-* Many currencies are missing from `config.yml`
+* Many currencies are missing from `config.yml.example`
 * Add tests
 
 ## Building the software
