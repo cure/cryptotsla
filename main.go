@@ -23,9 +23,10 @@ var (
 	// Debug output goes nowhere by default
 	debug = func(string, ...interface{}) {}
 	// Set up a *log.Logger for debug output
-	debugLog = log.New(os.Stderr, "DEBUG: ", log.LstdFlags)
-	models   map[string]Model
-	version  = "dev"
+	debugLog     = log.New(os.Stderr, "DEBUG: ", log.LstdFlags)
+	models       map[string]Model
+	version      = "dev"
+	spotChannels = make(map[string](chan decimal.Decimal)) // receive spot price
 )
 
 // Model describes a vehicle model
@@ -104,7 +105,7 @@ var optionsReqs = prometheus.NewCounterVec(
 
 func prometheusRecordOptions(model, variant string, response Response) {
 	options := make([]string, 0, len(response.Options))
-	for o, _ := range response.Options {
+	for o := range response.Options {
 		options = append(options, normalize(o))
 	}
 
@@ -160,6 +161,7 @@ func loadConfigDefaults() {
 	viper.SetDefault("GeneratedByURL", "https://api.cryptotsla.com")
 	viper.SetDefault("Debug", false)
 	viper.SetDefault("Version", false)
+	viper.SetDefault("SpotRefreshSeconds", 10)
 }
 
 func loadConfig(flags *flag.FlagSet) {
@@ -186,18 +188,50 @@ func loadConfig(flags *flag.FlagSet) {
 
 }
 
-func getBtcSpot(client *coinbasepro.Client, currency string) (price decimal.Decimal) {
+func createSpotListeners() {
+	currencies := getCurrencies()
+
+	for currency := range currencies {
+		spotChannels[currency] = make(chan decimal.Decimal)
+		go listen(currency)
+	}
+}
+
+func getSpot(client *coinbasepro.Client, currency string) (spot decimal.Decimal) {
 	book, err := client.GetBook("BTC-"+currency, 1)
 	if err != nil {
-		log.Print(err.Error())
+		fmt.Printf("ERROR: Unable to get the BTC exchange rate for %s: %s\n", currency, err.Error())
 		return decimal.New(0, 0)
 	}
-
-	lastPrice, err := decimal.NewFromString(book.Bids[0].Price)
+	spot, err = decimal.NewFromString(book.Bids[0].Price)
 	if err != nil {
-		println(err.Error())
+		fmt.Printf("ERROR: unable to convert the BTC exchange rage to a decimal.Decimal: %s\n", err.Error())
+		return decimal.New(0, 0)
 	}
-	return lastPrice
+	debug("New BTC price for %s: %+v\n", currency, spot)
+	return
+}
+
+func listen(currency string) {
+	client := coinbasepro.NewClient()
+	lastPrice := getSpot(client, currency)
+	enabled := true
+	if lastPrice.IsZero() {
+		enabled = false
+	}
+	for {
+		select {
+		case spotChannels[currency] <- lastPrice:
+			lastPrice = getSpot(client, currency)
+		case <-time.After(time.Duration(viper.GetInt("SpotRefreshSeconds")) * time.Second):
+			if enabled {
+				debug("Timer tick for %s\n", currency)
+				lastPrice = getSpot(client, currency)
+			} else {
+				debug("Timer tick for %s (disabled, not getting new BTC price)\n", currency)
+			}
+		}
+	}
 }
 
 type arrayFlags []string
@@ -231,6 +265,18 @@ func parseFlags() (flags *flag.FlagSet) {
 		log.Fatal(err)
 	}
 
+	return
+}
+
+func getCurrencies() (currencies map[string]bool) {
+	currencies = make(map[string]bool)
+	for _, m := range models {
+		for _, v := range m.Variants {
+			for currency := range v {
+				currencies[strings.ToUpper(currency)] = true
+			}
+		}
+	}
 	return
 }
 
@@ -325,8 +371,7 @@ func generateResponse(w http.ResponseWriter, r *http.Request, currency, model, v
 
 	model = strings.ToLower(model)
 
-	client := coinbasepro.NewClient()
-	response.BTCSpotPrice = getBtcSpot(client, response.Currency)
+	response.BTCSpotPrice = <-spotChannels[response.Currency]
 
 	if response.BTCSpotPrice.IsZero() {
 		errorString := "{\"Status\":\"500\",\"Error\":\"Unable to get BTC exchange rate\"}"
@@ -423,6 +468,8 @@ func main() {
 		log.Fatal("Unable to unmarshal Models", err.Error())
 	}
 	debug("Models: %+v\n", models)
+
+	createSpotListeners()
 
 	log.Println("Starting cryptotsla Daemon")
 

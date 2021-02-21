@@ -13,6 +13,7 @@ BasePath: "/"
 Port: 8080
 ListenHost: "127.0.0.1"
 ReferralURL: "https://ts.la/tom76605"
+SpotRefreshSeconds: 10
 Models:
   "S":
     DefaultVariant: "LongRange"
