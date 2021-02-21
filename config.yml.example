@@ -219,13 +219,10 @@ Models:
         EUR: 7500
         GBP: 6800
   "Y":
-    DefaultVariant: "StandardRange"
+    DefaultVariant: "LongRange"
     Variants:
-      StandardRange:
-        USD: 39990
-        CAD: 56290
       LongRange:
-        USD: 49990
+        USD: 48990
         CAD: 69990
         EUR: 63000
       Performance:
