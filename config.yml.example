@@ -77,12 +77,12 @@ Models:
     DefaultVariant: "StandardRangePlus"
     Variants:
       StandardRangePlus:
-        USD: 36990
+        USD: 37490
         CAD: 52990
-        EUR: 47990
+        EUR: 48990
         GBP: 40490
       LongRange:
-        USD: 46990
+        USD: 46490
         CAD: 64990
         EUR: 56990
         GBP: 46990
@@ -222,7 +222,7 @@ Models:
     DefaultVariant: "LongRange"
     Variants:
       LongRange:
-        USD: 48990
+        USD: 49990
         CAD: 69990
         EUR: 63000
       Performance:
