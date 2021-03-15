@@ -17,6 +17,7 @@ import (
 	"github.com/shopspring/decimal"
 	flag "github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	yaml "gopkg.in/yaml.v2"
 )
 
 var (
@@ -157,6 +158,8 @@ func loadConfigDefaults() {
 	viper.SetDefault("Port", 8080)
 	viper.SetDefault("BasePath", "/")
 	viper.SetDefault("ListenHost", "127.0.0.1")
+	// The header names are camel cased: IP becomes Ip
+	viper.SetDefault("ClientIPHeader", "")
 	viper.SetDefault("ReferralURL", "")
 	viper.SetDefault("GeneratedByURL", "https://api.cryptotsla.com")
 	viper.SetDefault("Debug", false)
@@ -179,13 +182,22 @@ func loadConfig(flags *flag.FlagSet) {
 
 	if viper.GetBool("Debug") {
 		debug = debugLog.Printf
+		debug(readableViperSettings())
 	}
 
 	if viper.GetBool("Version") {
 		fmt.Println(version)
 		os.Exit(0)
 	}
+}
 
+func readableViperSettings() string {
+	c := viper.AllSettings()
+	settings, err := yaml.Marshal(c)
+	if err != nil {
+		log.Fatalf("Unable to marshal config to YAML: %v", err)
+	}
+	return string(settings)
 }
 
 func createSpotListeners() {
@@ -200,7 +212,7 @@ func createSpotListeners() {
 func getSpot(client *coinbasepro.Client, currency string) (spot decimal.Decimal) {
 	book, err := client.GetBook("BTC-"+currency, 1)
 	if err != nil {
-		fmt.Printf("ERROR: Unable to get the BTC exchange rate for %s: %s\n", currency, err.Error())
+		fmt.Printf("WARNING: Unable to get the BTC exchange rate for %s: %s\n", currency, err.Error())
 		return decimal.New(0, 0)
 	}
 	spot, err = decimal.NewFromString(book.Bids[0].Price)
@@ -307,8 +319,7 @@ func listModels(w http.ResponseWriter, r *http.Request) {
 
 func accessLog(r *http.Request, code, message string) {
 	remote := r.RemoteAddr
-	// Oddly, the header has been changed from X-Real-IP
-	if realIP, ok := r.Header["X-Real-Ip"]; ok {
+	if realIP, ok := r.Header[viper.GetString("ClientIPHeader")]; ok {
 		remote = strings.Join(realIP, ",")
 	}
 	log.Printf("{ \"Remote\":\"%s\", \"Request\": \"%s %s\", \"Response\": %s}\n", remote, r.Method, r.URL.String(), message)
@@ -467,7 +478,7 @@ func main() {
 	if err != nil {
 		log.Fatal("Unable to unmarshal Models", err.Error())
 	}
-	debug("Models: %+v\n", models)
+	// debug("Models: %+v\n", models)
 
 	createSpotListeners()
 
@@ -486,5 +497,6 @@ func main() {
 	http.Handle(viper.GetString("BasePath")+"available", http.HandlerFunc(listModels))
 
 	http.Handle("/metrics", promhttp.Handler())
+	debug("Listening on %s:%s", viper.GetString("ListenHost"), viper.GetString("Port"))
 	log.Fatal(http.ListenAndServe(viper.GetString("ListenHost")+":"+viper.GetString("Port"), nil))
 }
