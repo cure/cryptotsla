@@ -17,7 +17,7 @@ Models:
         EUR: 119990
         GBP: 110980
       PlaidPlus:
-        USD: 139990
+        USD: 149990
         CAD: 189990
         EUR: 139990
         GBP: 130980
@@ -77,17 +77,17 @@ Models:
     DefaultVariant: "StandardRangePlus"
     Variants:
       StandardRangePlus:
-        USD: 37490
+        USD: 39490
         CAD: 52990
         EUR: 48990
         GBP: 40490
       LongRange:
-        USD: 46490
+        USD: 48490
         CAD: 64990
         EUR: 56990
         GBP: 46990
       Performance:
-        USD: 55990
+        USD: 56990
         CAD: 74990
         EUR: 62990
         GBP: 59990
@@ -222,7 +222,7 @@ Models:
     DefaultVariant: "LongRange"
     Variants:
       LongRange:
-        USD: 49990
+        USD: 51490
         CAD: 69990
         EUR: 63000
       Performance:
@@ -269,14 +269,6 @@ Models:
         EUR: 1050
       FSD:
         Group: 1
-        USD: 10000
-        CAD: 10600
-        EUR: 7500
-      TowHitch:
-        USD: 1000
-        CAD: 1300
-        EUR: 1050
-      FSD:
         USD: 10000
         CAD: 10600
         EUR: 7500
