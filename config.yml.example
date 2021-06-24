@@ -12,15 +12,10 @@ Models:
         EUR: 89990
         GBP: 83980
       Plaid:
-        USD: 119990
-        CAD: 159990
-        EUR: 119990
-        GBP: 110980
-      PlaidPlus:
-        USD: 149990
-        CAD: 189990
-        EUR: 139990
-        GBP: 130980
+        USD: 124990
+        CAD: 169990
+        EUR: 129990
+        GBP: 118980
     Options:
       DestinationFee:
         USD: 1200
@@ -222,7 +217,7 @@ Models:
     DefaultVariant: "LongRange"
     Variants:
       LongRange:
-        USD: 51990
+        USD: 52490
         CAD: 69990
         EUR: 63000
       Performance:
